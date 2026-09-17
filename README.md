@@ -59,11 +59,13 @@ Finally, to ensure high availability, scalability, and resilience, we will dive 
    II) Understanding Pre-generated Files:
 
    settings.py: Central configuration for database, installed apps, security keys, and static files.
+   
    urls.py: URL routing/traffic directory. Maps URLs to views.
+
    manage.py: Command-line utility for interacting with the project (running server, migrations).
 
 
-3) Create Django App (website)
+4) Create Django App (website)
 
    I) Create a self-contained module within your project to handle specific features.
 
@@ -77,7 +79,7 @@ Finally, to ensure high availability, scalability, and resilience, we will dive 
    <PRE>touch website/urls.py</PRE>
 
 
-4) Link App to Project
+5) Link App to Project
 
    I) Open portfolio/settings.py, locate INSTALLED_APPS, and add 'website' to the list:
 ```
