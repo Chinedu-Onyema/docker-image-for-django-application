@@ -1,4 +1,4 @@
-# Building and Containerizing Your First Django Application: From Development to Kubernetes
+# Building and Containerizing A Django Application: From Development to Kubernetes
 
 ## PROJECT OVERVIEW
 
@@ -66,8 +66,7 @@ Finally, to ensure high availability, scalability, and resilience, we will dive 
 
 
 4) Create Django App (website)
-
-   I) Create a self-contained module within your project to handle specific features.
+   Create a self-contained module within your project to handle specific features.
 
    #### Navigate into project directory
    <PRE>cd portfolio</PRE>
@@ -161,3 +160,134 @@ def home(request):
 
 
 ## Phase 2: Containerizing with Docker
+
+1) Setup Dependencies
+   Create a requirements.txt file in the GitHub root directory to define required Python packages for the container environment.
+
+   <PRE>touch requirements.txt</PRE>
+   Inside requirements.txt, add:
+```
+   Django
+   tzdata
+```
+
+
+2) Create Dockerfile
+   Create a file named Dockerfile in the root directory:
+
+
+3) Build and Run Image
+
+   #### Build image
+   <PRE>docker build .</PRE>
+
+   #### Identify image ID
+   <PRE>docker images -a</PRE>
+
+   #### Run container with Port Mapping (Host 8080 -> Container 8000)
+   <PRE>docker run -p 8080:8000 -it <YOUR_IMAGE_ID></PRE>
+   Access the application via the Codespaces browser on port 8080.
+
+
+
+## Phase 3: Multi-Stage Builds & Distroless Images
+To optimize security and size, implement a multi-stage build using a Google Distroless image (Python 3 runtime, no shell)
+
+1) Update Dockerfile:
+
+2) Build your Docker image with a tag:
+
+<PRE>docker build -t portfolio-website .</PRE>
+
+#### Run tagged image
+<PRE>docker run -p 8080:8000 -it portfolio-website:latest</PRE>
+
+
+
+## Phase 4: Docker Volumes for Persistent Storage
+
+1) Ensure data persistence by mounting a Docker volume.
+
+   #### Create volume
+   <PRE>docker volume create portfolio-storage</PRE>
+
+   #### Inspect volume path (usually /var/lib/docker/volumes/...)
+   <PRE>docker volume inspect portfolio-storage</PRE>
+
+   #### Run container with volume mounted to /app
+   <PRE>docker run -d --mount source=portfolio-storage,target=/app portfolio-website:latest</PRE>
+
+   #### Verify mount in running container
+   <PRE>docker ps</PRE>
+   <PRE>docker inspect <CONTAINER_ID></PRE>
+
+
+## Phase 5: Kubernetes Service Networking for Django
+Note: Steps 1-2 assume a local environment with Docker Desktop and Minikube installed.
+
+1) Start Minikube
+
+   <PRE>minikube start</PRE>
+   <PRE>minikube status</PRE>
+
+2) Clone your repo if using local environment
+
+   <PRE>git clone repo-name</PRE>
+
+3) Prepare Image for Minikube
+   Minikube cannot directly access local Docker Desktop images. You must build the image inside the Minikube environment.
+
+   #### Point terminal CLI to Minikube's Docker daemon
+   <PRE>eval $(minikube docker-env)</PRE>
+
+   #### Build image inside Minikube
+   <PRE>docker build -t portfolio-website:latest .</PRE>
+
+4) Create Deployment
+   Create django_deployment.yml (refer to instructions for full YAML) and apply:
+
+   #### Apply deployment
+   <PRE>kubectl apply -f django_deployment.yml</PRE>
+
+   #### Verify pods (ensure 2 replicas are running)
+   <PRE>kubectl get pods -o wide</PRE>
+
+
+5) Create NodePort Service (Internal/Dev Access)
+
+   I) Create django_service.yml defining a NodePort service (port 30007).
+
+   <PRE>kubectl apply -f django_service.yml</PRE>
+
+   #### Verify service
+   <PRE>kubectl get svc</PRE>
+
+   II) Access via Tunnel (WSL/macOS): Because NodePort isn't directly routable on standard WSL/macOS setups, use Minikube's service helper:
+
+   <PRE>minikube service django-app-service</PRE>
+   Keep terminal open and access via the provided 127.0.0.1 URL.
+
+
+6) Create LoadBalancer Service (External Access)
+
+   I) Simulate production external access.
+
+   II) Edit existing service: kubectl edit svc django-app-service
+
+   III) Change type: NodePort to type: LoadBalancer.
+
+   IV) Start Minikube tunnel in a separate terminal:
+
+   <PRE>minikube tunnel</PRE>
+
+   V) Verify External IP assignment and test:
+
+   <PRE>kubectl get svc</PRE>
+   <PRE>curl EXTERNAL_IP</PRE>
+
+
+## Phase 6: Monitoring Traffic with Kubeshark
+Kubeshark is used for network traffic observability inside the cluster.
+
+
+   
