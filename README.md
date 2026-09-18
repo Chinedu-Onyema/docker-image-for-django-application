@@ -65,7 +65,7 @@ Finally, to ensure high availability, scalability, and resilience, we will dive 
    manage.py: Command-line utility for interacting with the project (running server, migrations).
 
 
-4) Create Django App (website)
+3) Create Django App (website)
    Create a self-contained module within your project to handle specific features.
 
    #### Navigate into project directory
@@ -78,9 +78,8 @@ Finally, to ensure high availability, scalability, and resilience, we will dive 
    <PRE>touch website/urls.py</PRE>
 
 
-5) Link App to Project
-
-   I) Open portfolio/settings.py, locate INSTALLED_APPS, and add 'website' to the list:
+4) Link App to Project
+Open portfolio/settings.py, locate INSTALLED_APPS, and add 'website' to the list:
 ```
    INSTALLED_APPS = [
     ...,
@@ -91,7 +90,7 @@ Finally, to ensure high availability, scalability, and resilience, we will dive 
 
 5) Test Basic HTTP Response
 
-   I) Modify website/views.py:
+I) Modify website/views.py:
 ```
 from django.shortcuts import HttpResponse
 
@@ -99,7 +98,7 @@ def home(request):
     return HttpResponse("Hello Learner")
 ```
 
-  II) Configure website/urls.py:
+II) Configure website/urls.py:
 ```
 from django.urls import path
 from . import views
@@ -109,7 +108,7 @@ urlpatterns = [
 ]
 ```
 
-  III) Update project portfolio/urls.py to include the app URLs:
+III) Update project portfolio/urls.py to include the app URLs:
 ```
 from django.urls import path, include
 
@@ -119,7 +118,7 @@ urlpatterns = [
 ]
 ```
 
-  IV) Run the development server:
+IV) Run the development server:
 
   #### Ensure you are in the directory with manage.py
   <PRE>python manage.py runserver</PRE>
@@ -129,18 +128,18 @@ urlpatterns = [
 
 6) Create Static Portfolio Website (HTML Templates)
    
-   I) Set up directory structure for HTML and static files (CSS, Images) within the website app:
+I) Set up directory structure for HTML and static files (CSS, Images) within the website app:
 
    <PRE>cd website</PRE>
    <PRE>mkdir templates static</PRE>
    <PRE>touch templates/index.html</PRE>
    <PRE>mkdir static/websitefiles</PRE>
 
-   II) Add HTML content to templates/index.html (refer to source provided in instructions for full HTML, ensure {% load static %} is used).
+II) Add HTML content to templates/index.html (refer to source provided in instructions for full HTML, ensure {% load static %} is used).
 
-   III) Upload dependencies (7_style.css, 7_EDITED_PIC.jpg) to static/websitefiles/.
+III) Upload dependencies (7_style.css, 7_EDITED_PIC.jpg) to static/websitefiles/.
 
-   IV) Update website/views.py to render the template:
+IV) Update website/views.py to render the template:
 
 ```
 from django.shortcuts import render
@@ -149,9 +148,9 @@ def home(request):
     return render(request, "index.html")
 ```
 
-   V) Run server again and verify the full website renders.
+V) Run server again and verify the full website renders.
 
-   VI) Save changes to Git:
+VI) Save changes to Git:
 
    <PRE>git add .</PRE>
    <PRE>git commit -m "Django app ready for docker"</PRE>
@@ -197,11 +196,10 @@ To optimize security and size, implement a multi-stage build using a Google Dist
 
 2) Build your Docker image with a tag:
 
-<PRE>docker build -t portfolio-website .</PRE>
+   <PRE>docker build -t portfolio-website .</PRE>
 
-#### Run tagged image
-<PRE>docker run -p 8080:8000 -it portfolio-website:latest</PRE>
-
+   #### Run tagged image
+   <PRE>docker run -p 8080:8000 -it portfolio-website:latest</PRE>
 
 
 ## Phase 4: Docker Volumes for Persistent Storage
@@ -289,5 +287,61 @@ Note: Steps 1-2 assume a local environment with Docker Desktop and Minikube inst
 ## Phase 6: Monitoring Traffic with Kubeshark
 Kubeshark is used for network traffic observability inside the cluster.
 
+1) Install Kubeshark
+
+   #### Export desired tag
+   <PRE>export TAG=v52.3.92</PRE>
+
+   #### Apply manifests
+   <PRE>kubectl apply -f https://raw.githubusercontent.com/kubeshark/kubeshark/refs/tags/$TAG/manifests/complete.yaml</PRE>
+
+
+2) Run Kubeshark
+   #### Port-forward dashboard
+   <PRE>kubectl port-forward service/kubeshark-front 8899:80</PRE>
+   Access dashboard at http://127.0.0.1:8899 to visualize real-time packet flow between LoadBalancer and Pods.
+
+
+3) Cleanup
+
+   <PRE>kubectl delete -f https://raw.githubusercontent.com/kubeshark/kubeshark/refs/tags/$TAG/manifests/complete.yaml</PRE>
+
+
+## Phase 7: Implementing Kubernetes Ingress
+
+1) Implement host-based routing
+
+2) Enable Ingress Controller
+
+   <PRE>minikube addons enable ingress</PRE>
+
+   #### Verify controller pods are running
+   <PRE>kubectl get pods -n ingress-nginx</PRE>
+
+3) Create Ingress Rule
+   Create django_host_ingress.yml defining routing for host foo.bar.com on path /bar.
+
+   #### Apply Ingress rule
+   <PRE>kubectl apply -f django_host_ingress.yml</PRE>
+
+   #### Verify address assignment (may take a minute)
+   <PRE>kubectl get ingress</PRE>
+
+
+4) Local DNS Testing (By-passing DNS)
+
+   I) Update your host machine's hosts file to map the Ingress Controller IP to foo.bar.com.
+
+   #### View current hosts
+   <PRE>sudo cat /etc/hosts</PRE>
+
+   #### Edit hosts file
+   <PRE>sudo vim /etc/hosts</PRE>
+
+   II) Add a line:
+   <PRE>INGRESS_CONTROLLER_IP foo.bar.com</PRE>
+
+   III) Test connectivity (Note: success depends on network isolation setup in WSL/macOS):
+   <PRE>ping foo.bar.com</PRE>
 
    
