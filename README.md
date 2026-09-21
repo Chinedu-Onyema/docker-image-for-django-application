@@ -1,6 +1,6 @@
-# Building and Containerizing A Django Application: From Development to Kubernetes
+# Building, Containerizing & Deploying A Django Application: From Development to Kubernetes
 
-## PROJECT OVERVIEW
+## OVERVIEW
 
 This comprehensive guide is designed for developers and DevOps engineers taking their first steps into the Python web ecosystem. This project is not just about writing code; it is a holistic journey through the modern software development lifecycle (SDLC).
 
@@ -9,9 +9,11 @@ Written by experienced developers, it takes care of much of the hassle of web de
 
 In the first phase of this guide, you will build a foundational Django application, transitioning from a simple "Hello World" HTTP response to rendering a full, static HTML portfolio website.
 
-However, building the application is only half the battle. Modern software needs to run reliably across different environments—from a developer's laptop to production cloud clusters. To achieve this, we will move into Containerization with Docker. You will learn to write a Dockerfile, create efficient multi-stage builds, and utilize Google's Distroless images to create a secure, minimal production image that only contains your application and its dependencies—no shell, no package manager, just your code.
+However, building the application is only half the battle. Modern software needs to run reliably across different environments, for example, from a developer's laptop to production cloud clusters. To achieve this, we will move into Containerization with Docker. You will learn to write a Dockerfile, create efficient multi-stage builds, and utilize Google's Distroless images to create a secure, minimal production image that only contains your application and its dependencies, no shell, no package manager, just your code.
 
-Finally, to ensure high availability, scalability, and resilience, we will dive into Orchestration with Kubernetes. Using Minikube, you will deploy your containerized Django app, design advanced Service networking (ClusterIP, NodePort, LoadBalancer), implement Ingress routing rules, and monitor live cluster traffic using Kubeshark.
+To ensure high availability, scalability, and resilience, we will dive into Orchestration with Kubernetes. Using a development Kubernetes environment like Minikube, you will deploy your containerized Django app, design advanced Service networking (ClusterIP, NodePort, LoadBalancer), implement Ingress routing rules, and monitor live cluster traffic using Kubeshark.
+
+Finally, you will deploy and debug (CrashLoopBackOff) your containerized Django application and implement advanced networking in a production Kubernetes environment using OpenShift.
 
 
 ## ACCESS PROJECT MATERIALS HERE
@@ -28,8 +30,12 @@ Finally, to ensure high availability, scalability, and resilience, we will dive 
 
 ### 3) DESIGN KUBERNETES SERVICE NETWORKING FOR DJANGO APPLICATION
 #### PDF GUIDE: [DESIGN KUBERNETES SERVICE NETWORKING FOR DJANGO APPLICATION.pdf](https://github.com/user-attachments/files/32324522/DESIGN.KUBERNETES.SERVICE.NETWORKING.FOR.DJANGO.APPLICATION.pdf)
-
 #### WATCH VIDEO WALKTHROUGH HERE: https://youtu.be/P6_RC3kR6Ww
+
+
+### 4) DEBUG & DEPLOY DJANGO APPLICATION TO PRODUCTION KUBERNETES CLUSTER WITH OPENSHIFT
+#### PDF GUIDE: [HOST A DJANGO APPLICATION ON A PRODUCTION KUBERNETES CLUSTER WITH OPENSHIFT.pdf](https://github.com/user-attachments/files/32475456/HOST.A.DJANGO.APPLICATION.ON.A.PRODUCTION.KUBERNETES.CLUSTER.WITH.OPENSHIFT.pdf)
+#### WATCH VIDEO WALKTHROUGH HERE: https://youtu.be/nSe7111hMIU
 
 
 ## Phase 1: Creating Your First Django Application
@@ -137,7 +143,7 @@ I) Set up directory structure for HTML and static files (CSS, Images) within the
 
 II) Add HTML content to templates/index.html (refer to source provided in instructions for full HTML, ensure {% load static %} is used).
 
-III) Upload dependencies (7_style.css, 7_EDITED_PIC.jpg) to static/websitefiles/.
+III) Upload dependencies (style.css, EDITED_PIC.jpg) to static/websitefiles/.
 
 IV) Update website/views.py to render the template:
 
@@ -344,4 +350,149 @@ Kubeshark is used for network traffic observability inside the cluster.
    III) Test connectivity (Note: success depends on network isolation setup in WSL/macOS):
    <PRE>ping foo.bar.com</PRE>
 
+
+
+## Phase 8: Hosting Django on Production OpenShift Cluster
+
+Moving from Minikube to a production Red Hat OpenShift cluster requires stricter security and specific workflow changes, including authenticating with OpenShift's internal image registry.
+
+1) Login to OpenShift Cluster via CLI
+   Retrieve your login token from the OpenShift Web Console (Username -> Copy Login Command -> Display Token).
+
+   #### Example login command
+   <PRE>oc login --token=sha256~YOUR_TOKEN --server=https://your-api-url:6443</PRE>
+
+   #### Switch to your designated project/namespace
+   <PRE>oc project techdealer1000-dev</PRE>
+
+
+2) Build Image Locally and Authenticate Docker
+   Ensure Docker Desktop is running. We will build the image locally and push it to OpenShift's registry.
+
+   #### Clone the repository if not already present
+   <PRE>git clone https://github.com/Chinedu-Onyema/docker-image-for-django-application.git</PRE>
+   <PRE>cd docker-image-for-django-application</PRE>
+
+   #### Build the local image
+   <PRE>docker build -t portfolio-website .</PRE>
+
+   #### Authenticate local Docker daemon with OpenShift internal registry
+   <PRE>oc whoami -t | docker login -u unused --password-stdin default-route-openshift-image-registry.apps.your-cluster-domain.com</PRE>
+
+
+3) Tag and Push Image to OpenShift Registry
+   You need your cluster domain and namespace to tag the image correctly.
+
+   #### Tag image for OpenShift Registry
+   #### Format: <PRE>docker tag <local-image> default-route-openshift-image-registry.<cluster-domain>/<namespace>/<image-name></PRE>
+   <PRE>docker tag portfolio-website default-route-openshift-image-registry.apps.rm1.0a51.p1.openshiftapps.com/techdealer1000-dev/portfolio-website</PRE>
+
+   #### Push image
+   <PRE>docker push default-route-openshift-image-registry.apps.rm1.0a51.p1.openshiftapps.com/techdealer1000-dev/portfolio-website</PRE>
+
+   #### Confirm image stream exists in OpenShift
+   <PRE>oc get imagestreams your-namespace</PRE>
+
+
+4) Deploy to OpenShift
+   Create django_openshift_deployment.yml.
+   The image path must point to the internal registry path obtained in the previous step.
+
+   <PRE>kubectl apply -f django_openshift_deployment.yml</PRE>
+
+
+
+## Phase 9: Debugging OpenShift Security (Non-Root) and Static Files
+
+Upon deployment to OpenShift, Pods may enter CrashLoopBackOff or render without static files (images/CSS). 
+This phase addresses these common production issues.
+
+1) Debugging CrashLoopBackOff (Python Version Mismatch)
+   Unlike standard Kubernetes environments, Distroless images on OpenShift require precise synchronization between the build environment and the runtime environment.
+
+   Issue: <PRE>kubectl logs your-pod-name</PRE> shows Cannot import django.
+   This often happens if the builder stage in the multi-stage Dockerfile uses a different Python minor version than the final Distroless runtime.
+
+   Solution: Check the Distroless runtime version and update the Dockerfile
+
+   #### Check runtime Python version in Distroless
+   <PRE>docker run --rm --entrypoint python3 gcr.io/distroless/python3 --version</PRE>
+
+
+   Update Dockerfile (Example if runtime is Python 3.13):
+```
+   #### BEFORE
+   FROM python:3.12-slim AS builder
+   ...
+   ENV PYTHONPATH=/root/.local/lib/python3.12/site-packages
+
+   #### AFTER
+   FROM python:3.13-slim AS builder
+   ...
+   ENV PYTHONPATH=/root/.local/lib/python3.13/site-packages
+```
+
+
+2) Fixing Security Context (Non-Root Enforcement)
+   Issue: OpenShift enforces running containers as a non-root user (random UID).
+   If dependencies were installed in /root/.local (as done in Phase 3), the OpenShift user cannot read them, causing startup failure.
+
+   Solution: Re-write Dockerfile to install dependencies in a non-root accessible directory (e.g., /install) and modify PYTHONPATH.
+
+   Updated Dockerfile for OpenShift:
+```
+   #### STAGE 1: BUILD
+   FROM python:3.13-slim AS builder
+   WORKDIR /app
+   COPY requirements.txt /app
+
+   #### Install to a specific, non-root target directory
+   RUN pip install --no-cache-dir --target=/install -r requirements.txt
+
+   #### STAGE 2: PRODUCTION
+   FROM gcr.io/distroless/python3
+   WORKDIR /app
+
+   #### Copy from build stage
+   COPY --from=builder /install /install
+   COPY portfolio /app
+
+   #### Set PYTHONPATH to the new directory
+   ENV PYTHONPATH=/install
+
+   CMD ["manage.py", "runserver", "0.0.0.0:8000"]
+```
+
+
+3) Rebuild, repush, and restart deployment:
+
+   <PRE>docker build --no-cache -t portfolio-website:latest .</PRE>
+   #### ... (tag and push commands) ...
+   <PRE>kubectl rollout restart deployment django-openshift-app-deployment</PRE>
+
+
+4) Exposing via OpenShift Route
+   Due to cluster restrictions on free tiers, LoadBalancer services may not work. Use OpenShift Routes.
+
+   I) Ensure a ClusterIP service exists (django_openshift_service.yml).
+
+   II) Expose the service:
+
+   <PRE>oc expose service django-app-service</PRE>
+   <PRE>oc get route django-app-service</PRE>
+   Access the application via the generated Hostname URL.
+
+
+5) Debugging Missing Static Files (DEBUG Mode)
+   Issue: Application loads, but images and CSS are missing.Reason: In production conditions (DEBUG=False in settings.py), Django's runserver does not serve static files.
+
+   Solution (for development/test on OpenShift): Change DEBUG=True in portfolio/settings.py.
+   Note: For true production, a production WSGI server (Gunicorn) and static file server (Nginx) are required.
+
+   #### settings.py
+   ```
+   DEBUG = True
+   ALLOWED_HOSTS = ['*']    #### Required when debugging on a generated route
+   ```
+   Rebuild, repush, and restart deployment one final time to see the fully rendered site.
    
