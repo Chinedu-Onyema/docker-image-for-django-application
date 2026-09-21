@@ -85,13 +85,13 @@ Finally, you will deploy and debug (CrashLoopBackOff) your containerized Django 
 
 
 4) Link App to Project
-Open portfolio/settings.py, locate INSTALLED_APPS, and add 'website' to the list:
-```
+   Open portfolio/settings.py, locate INSTALLED_APPS, and add 'website' to the list:
+   ```
    INSTALLED_APPS = [
     ...,
     'website',
-]
-```
+   ]
+   ```
 
 
 5) Test Basic HTTP Response
