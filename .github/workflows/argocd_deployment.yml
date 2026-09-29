@@ -1,0 +1,39 @@
+name: Continuous Deployment with GitHub Actions & Argo CD
+
+on:
+  push:
+    branches: [main]                 # for every push to the main branch 
+                                     # deploy new changes to argo cd
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}    # use GitHub inbuilt token
+                                                # it's an auto-generated, temporary credential GitHub gives each workflow run 
+                                                # so GitHub Actions can authenticate and interact with your repo (clone, commit, push) 
+                                                # without you having to manually supply a password or personal access token.
+                                                # but you will need to allow write and read access to this token to allow GitHub Actions permissions.
+                                                # you will allow for write and read access in the future
+        
+      # set the git identity to GitHub Actions
+      # this will allow GitHub actions commit and push an updated django_deployment.yml file 
+      # with your latest commit id back to your repo so argocd can use your latest Docker image, and 
+      # Git requires both a valid identity (who's making the commit) 
+      # and write permission (authorization to actually push it) to do that.
+      - name: Configure Git identity
+        run: |
+          git config --global user.email "actions@github.com"   
+          git config --global user.name "GitHub Actions"
+
+      # automatically logs GitHub Actions to your docker hub
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      # GitHub Actions executes the deploy.sh script
+      - name: Run deploy script
+        run: |
+          chmod +x deploy.sh               
+          ./deploy.sh
