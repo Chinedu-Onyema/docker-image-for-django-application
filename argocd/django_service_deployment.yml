@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service                              # type of Kubernetes build or creation
+metadata:
+  name: django-argocd-app-service          # name of the kubernetes service
+spec:
+  selector:
+    app: django-argocd-app                 # replace with the exact name of the label
+                                           # if you inspect the django deployment file
+                                           # the label name is referenced by the selector
+    
+  ports:
+    - port: 80                             # this is the port the service (django-argocd-app-service) 
+                                           # itself listens on
+
+      targetPort: 8000                     # change this to the port your django app is listening on
