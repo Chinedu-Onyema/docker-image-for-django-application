@@ -1,6 +1,6 @@
 [![Continuous Deployment with GitHub Actions & Argo CD](https://github.com/Chinedu-Onyema/docker-image-for-django-application/actions/workflows/argocd_deployment.yml/badge.svg)](https://github.com/Chinedu-Onyema/docker-image-for-django-application/actions/workflows/argocd_deployment.yml)
 
-# Building, Containerizing & Deploying A Django Application: From Development to Kubernetes
+# Building, Containerizing & Continuously Deploying A Django Application: From Development to Kubernetes
 
 ## OVERVIEW
 
