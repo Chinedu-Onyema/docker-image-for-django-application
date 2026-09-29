@@ -17,7 +17,7 @@ spec:
       containers:
       - name: django-argocd-application            # the container name for the created django image
 
-        image: portfolio-website:latest            # the created django docker image in my cluster
+        image: portfolio-website:477a278
 
         imagePullPolicy: Never              # this tells kubernetes to use the image provided locally in your cluster 
                                             # instead of pulling directly from docker hub. if you want to pull from 
