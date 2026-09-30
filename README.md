@@ -25,7 +25,7 @@ Finally, you will deploy and debug (CrashLoopBackOff) your containerized Django 
 #### WATCH VIDEO WALKTHROUGH HERE: https://youtu.be/SbO1XAPduZw
 
 
-### 2) CREATE A MULTI-STAGE BUILD AND DISTROLESS DOCKER IMAGE
+### 2) CREATE A MULTI-STAGE BUILD & DISTROLESS DOCKER IMAGE
 #### PDF GUIDE: [CREATE A MULTI-STAGE BUILD AND DISTROLESS DOCKER IMAGE.pdf](https://github.com/user-attachments/files/32014139/2.CREATE.A.MULTI-STAGE.BUILD.AND.DISTROLESS.DOCKER.IMAGE.pdf)
 #### WATCH VIDEO WALKTHROUGH HERE: https://youtu.be/GWAzzeYyqdM
 
