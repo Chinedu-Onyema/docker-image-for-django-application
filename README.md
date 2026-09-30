@@ -40,7 +40,7 @@ Finally, you will deploy and debug (CrashLoopBackOff) your containerized Django 
 #### WATCH VIDEO WALKTHROUGH HERE: https://youtu.be/nSe7111hMIU
 
 
-## Phase 1: Creating Your First Django Application
+## PHASE 1: CREATING YOUR FIRST DJANGO APPLICATION
 
 1) Initial Setup via GitHub Codespaces
 
@@ -166,7 +166,7 @@ VI) Save changes to Git:
 
 
 
-## Phase 2: Containerizing with Docker
+## PHASE 2: CONTAINERIZING WITH DOCKER
 
 1) Setup Dependencies
    Create a requirements.txt file in the GitHub root directory to define required Python packages for the container environment.
@@ -197,7 +197,7 @@ VI) Save changes to Git:
 
 
 
-## Phase 3: Multi-Stage Builds & Distroless Images
+## PHASE 3: MULTI-STAGE BUILDS & DISTROLESS IMAGES
 To optimize security and size, implement a multi-stage build using a Google Distroless image (Python 3 runtime, no shell)
 
 1) Update Dockerfile:
@@ -210,7 +210,7 @@ To optimize security and size, implement a multi-stage build using a Google Dist
    <PRE>docker run -p 8080:8000 -it portfolio-website:latest</PRE>
 
 
-## Phase 4: Docker Volumes for Persistent Storage
+## PHASE 4: DOCKER VOLUMES FOR PERSISTENT STORAGE
 
 1) Ensure data persistence by mounting a Docker volume.
 
@@ -228,7 +228,7 @@ To optimize security and size, implement a multi-stage build using a Google Dist
    <PRE>docker inspect <CONTAINER_ID></PRE>
 
 
-## Phase 5: Kubernetes Service Networking for Django
+## PHASE 5: KUBERNETES SERVICE NETWORKING FOR DJANGO
 Note: Steps 1-2 assume a local environment with Docker Desktop and Minikube installed.
 
 1) Start Minikube
@@ -292,7 +292,7 @@ Note: Steps 1-2 assume a local environment with Docker Desktop and Minikube inst
    <PRE>curl EXTERNAL_IP</PRE>
 
 
-## Phase 6: Monitoring Traffic with Kubeshark
+## PHASE 6: MONITORING TRAFFIC WITH KUBESHARK
 Kubeshark is used for network traffic observability inside the cluster.
 
 1) Install Kubeshark
@@ -315,7 +315,7 @@ Kubeshark is used for network traffic observability inside the cluster.
    <PRE>kubectl delete -f https://raw.githubusercontent.com/kubeshark/kubeshark/refs/tags/$TAG/manifests/complete.yaml</PRE>
 
 
-## Phase 7: Implementing Kubernetes Ingress
+## PHASE 7: IMPLEMENTING KUBERNETES INGRESS
 
 1) Implement host-based routing
 
@@ -354,7 +354,7 @@ Kubeshark is used for network traffic observability inside the cluster.
 
 
 
-## Phase 8: Hosting Django on Production OpenShift Cluster
+## PHASE 8: HOSTING DJANGO ON PRODUCTION OPENSHIFT CLUSTER
 
 Moving from Minikube to a production Red Hat OpenShift cluster requires stricter security and specific workflow changes, including authenticating with OpenShift's internal image registry.
 
@@ -404,7 +404,7 @@ Moving from Minikube to a production Red Hat OpenShift cluster requires stricter
 
 
 
-## Phase 9: Debugging OpenShift Security (Non-Root) and Static Files
+## PHASE 9: DEBUGGING OPENSHIFT SECURITY (NON-ROOT) AND STATIC FILES
 
 Upon deployment to OpenShift, Pods may enter CrashLoopBackOff or render without static files (images/CSS). 
 This phase addresses these common production issues.
