@@ -19,7 +19,7 @@ You will deploy and debug (CrashLoopBackOff) your containerized Django applicati
 
 Finally, you will master GitOps with Argo CD and automate continuous deployment/delivery to Argo CD with GitHub Actions.
 
-IMPORTANT NOTE: Each phase includes a downloadable PDF guide and a step-by-step video walkthrough to help you follow the deployment process. 
+##### IMPORTANT NOTE: Each phase includes a downloadable PDF guide and a step-by-step video walkthrough to help you follow the deployment process. 
 
 
 ## PHASE 1: CREATING YOUR FIRST DJANGO APPLICATION
